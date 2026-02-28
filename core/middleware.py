@@ -13,7 +13,7 @@ from core.models.User import User
 class EndpointPermissionMiddleware:
     """
     Middleware to enforce authentication for API endpoints.
-    Public endpoints (no token required): auth (login/register), categories, users (customers).
+    Public endpoints (no token required): auth (login/register), categories, users, workers.
     Also catches invalid URLs and returns a proper 404 JSON response.
     """
 
@@ -64,6 +64,8 @@ class EndpointPermissionMiddleware:
                 )
 
             if self._is_public_path(request.path_info):
+                # Don't send Authorization to the view so DRF doesn't try to validate the token
+                request.META.pop("HTTP_AUTHORIZATION", None)
                 return self.get_response(request)
 
             auth_header = request.headers.get("Authorization", None)
