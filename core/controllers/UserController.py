@@ -22,9 +22,9 @@ class UserDetailController(APIView):
 
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self, request, pk):
+    def get(self, request, user_id):
         try:
-            user = User.objects.get(pk=pk)
+            user = User.objects.get(pk=user_id)
             return ResponseService.response("SUCCESS", result=UserSerializer(user).data)
         except User.DoesNotExist:
             return ResponseService.response("NOT_FOUND", message="User not found")

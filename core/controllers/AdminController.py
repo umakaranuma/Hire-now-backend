@@ -38,13 +38,13 @@ class AdminPendingWorkersController(APIView):
 
 
 class AdminApproveWorkerController(APIView):
-    """POST /api/admin/workers/<pk>/approve/ - set worker is_verified=True."""
+    """POST /api/admin/workers/<worker_id>/approve - set worker is_verified=True."""
 
     permission_classes = [IsAdminUser]
 
-    def post(self, request, pk):
+    def post(self, request, worker_id):
         try:
-            worker = Worker.objects.get(pk=pk)
+            worker = Worker.objects.get(pk=worker_id)
             worker.is_verified = True
             worker.save()
             return ResponseService.response("SUCCESS", result=WorkerSerializer(worker).data)
@@ -53,13 +53,13 @@ class AdminApproveWorkerController(APIView):
 
 
 class AdminRejectWorkerController(APIView):
-    """POST /api/admin/workers/<pk>/reject/ - optional reason."""
+    """POST /api/admin/workers/<worker_id>/reject - optional reason."""
 
     permission_classes = [IsAdminUser]
 
-    def post(self, request, pk):
+    def post(self, request, worker_id):
         try:
-            worker = Worker.objects.get(pk=pk)
+            worker = Worker.objects.get(pk=worker_id)
             worker.is_verified = False
             worker.save()
             return ResponseService.response("SUCCESS", result=None)

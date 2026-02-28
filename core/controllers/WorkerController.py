@@ -49,9 +49,9 @@ class WorkerDetailController(APIView):
 
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self, request, pk):
+    def get(self, request, worker_id):
         try:
-            worker = worker_queryset().get(pk=pk)
+            worker = worker_queryset().get(pk=worker_id)
             return ResponseService.response("SUCCESS", result=WorkerSerializer(worker).data)
         except Worker.DoesNotExist:
             return ResponseService.response("NOT_FOUND", message="Worker not found")

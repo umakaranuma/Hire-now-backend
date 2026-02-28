@@ -37,16 +37,16 @@ class ReviewDetailController(APIView):
 
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
-    def get(self, request, pk):
+    def get(self, request, review_id):
         try:
-            review = Review.objects.select_related("worker", "author").get(pk=pk)
+            review = Review.objects.select_related("worker", "author").get(pk=review_id)
             return ResponseService.response("SUCCESS", result=ReviewSerializer(review).data)
         except Review.DoesNotExist:
             return ResponseService.response("NOT_FOUND", message="Review not found")
 
-    def put(self, request, pk):
+    def put(self, request, review_id):
         try:
-            review = Review.objects.get(pk=pk)
+            review = Review.objects.get(pk=review_id)
             if not IsOwnerOrReadOnly().has_object_permission(request, self, review):
                 return ResponseService.response("FORBIDDEN", message="Not allowed")
             serializer = ReviewSerializer(review, data=request.data, partial=False)
@@ -59,9 +59,9 @@ class ReviewDetailController(APIView):
         except Review.DoesNotExist:
             return ResponseService.response("NOT_FOUND", message="Review not found")
 
-    def delete(self, request, pk):
+    def delete(self, request, review_id):
         try:
-            review = Review.objects.get(pk=pk)
+            review = Review.objects.get(pk=review_id)
             if not IsOwnerOrReadOnly().has_object_permission(request, self, review):
                 return ResponseService.response("FORBIDDEN", message="Not allowed")
             review.delete()

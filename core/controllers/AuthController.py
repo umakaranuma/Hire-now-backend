@@ -1,45 +1,148 @@
-from rest_framework.views import APIView
+import json
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 
-from core.serializers.UserSerializer import UserSerializer, RegisterSerializer
+from core.serializers.UserSerializer import UserSerializer
 from core.services.AuthService import AuthService
-from mServices import ResponseService
+from mServices import ResponseService, ValidatorService
 
 User = get_user_model()
 
 
-class LoginView(TokenObtainPairView):
-    """POST /api/auth/login/ - returns JWT tokens and user."""
+# --------------------------------------------------------
+# POST /auth/login/ - Login and return JWT tokens + user
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def login(request):
+    """Handle POST (Login) for auth."""
+    return do_login(request)
 
-    permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == 200 and "access" in response.data:
-            user = User.objects.get(username=request.data.get("username"))
-            tokens = AuthService.get_tokens_for_user(user)
+def do_login(request):
+    """Authenticate user and return tokens + user."""
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        rules = {
+            "username": "required|max:150",
+            "password": "required",
+        }
+
+        custom_messages = {
+            "username.required": "Username is required.",
+            "password.required": "Password is required.",
+        }
+
+        errors = ValidatorService.validate(data, rules, custom_messages)
+        if errors:
+            return ResponseService.response("VALIDATION_ERROR", errors, "Validation Error")
+
+        user = authenticate(
+            request,
+            username=data.get("username"),
+            password=data.get("password"),
+        )
+
+        if user is None:
             return ResponseService.response(
-                "SUCCESS", result={"tokens": tokens, "user": UserSerializer(user).data}
+                "UNAUTHORIZED",
+                None,
+                "Invalid username or password.",
             )
-        return response
 
-
-class RegisterView(APIView):
-    """POST /api/auth/register/ - create user and return JWT + user."""
-
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if not serializer.is_valid():
-            return ResponseService.response(
-                "VALIDATION_ERROR", message="Invalid data", result=serializer.errors
-            )
-        user = serializer.save()
         tokens = AuthService.get_tokens_for_user(user)
+        response_data = {
+            "tokens": tokens,
+            "user": UserSerializer(user).data,
+        }
+
         return ResponseService.response(
             "SUCCESS",
-            result={"tokens": tokens, "user": UserSerializer(user).data},
+            response_data,
+            "Login successful.",
+        )
+    except json.JSONDecodeError as e:
+        return ResponseService.response(
+            "VALIDATION_ERROR",
+            {"body": ["Invalid JSON."]},
+            "Invalid request body.",
+        )
+    except Exception as e:
+        return ResponseService.response(
+            "INTERNAL_SERVER_ERROR",
+            {"error": str(e)},
+            "Server Error",
+        )
+
+
+# --------------------------------------------------------
+# POST /auth/register/ - Register user and return JWT tokens + user
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def register(request):
+    """Handle POST (Register) for auth."""
+    return do_register(request)
+
+
+def do_register(request):
+    """Create user and return tokens + user."""
+    try:
+        data = json.loads(request.body) if request.body else {}
+
+        rules = {
+            "username": "required|max:150|unique:core_user,username",
+            "email": "required|email",
+            "password": "required|min:8",
+            "phone": "max:20",
+            "first_name": "max:150",
+            "last_name": "max:150",
+            "role": "in:customer,worker,admin",
+        }
+
+        custom_messages = {
+            "username.required": "Username is required.",
+            "username.unique": "This username already exists.",
+            "email.required": "Email is required.",
+            "email.email": "Enter a valid email address.",
+            "password.required": "Password is required.",
+            "password.min_string": "Password must be at least 8 characters.",
+        }
+
+        errors = ValidatorService.validate(data, rules, custom_messages)
+        if errors:
+            return ResponseService.response("VALIDATION_ERROR", errors, "Validation Error")
+
+        user = User.objects.create_user(
+            username=data["username"],
+            email=data["email"],
+            password=data["password"],
+            phone=data.get("phone", ""),
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
+            role=data.get("role", "customer"),
+        )
+
+        tokens = AuthService.get_tokens_for_user(user)
+        response_data = {
+            "tokens": tokens,
+            "user": UserSerializer(user).data,
+        }
+
+        return ResponseService.response(
+            "SUCCESS",
+            response_data,
+            "Registration successful.",
+        )
+    except json.JSONDecodeError as e:
+        return ResponseService.response(
+            "VALIDATION_ERROR",
+            {"body": ["Invalid JSON."]},
+            "Invalid request body.",
+        )
+    except Exception as e:
+        return ResponseService.response(
+            "INTERNAL_SERVER_ERROR",
+            {"error": str(e)},
+            "Server Error",
         )

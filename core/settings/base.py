@@ -29,9 +29,13 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.middleware.EndpointPermissionMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
+
+# No trailing slash on API paths (e.g. /api/users not /api/users/)
+APPEND_SLASH = False
 
 TEMPLATES = [
     {

@@ -17,9 +17,9 @@ class CategoryController(APIView):
 class CategoryDetailController(APIView):
     """GET /api/categories/<id>/ - category detail."""
 
-    def get(self, request, pk):
+    def get(self, request, category_id):
         try:
-            category = Category.objects.get(pk=pk)
+            category = Category.objects.get(pk=category_id)
             return ResponseService.response("SUCCESS", result=CategorySerializer(category).data)
         except Category.DoesNotExist:
             return ResponseService.response("NOT_FOUND", message="Category not found")
