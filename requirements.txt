@@ -5,3 +5,4 @@ mysqlclient==2.2.8
 python-dotenv==1.2.1
 Pillow==12.1.1
 mServices>=1.0.22
+django-cors-headers==4.3.1
