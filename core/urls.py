@@ -12,7 +12,15 @@ from core.controllers.WorkerController import (
 from core.controllers.WorkerReviewsController import WorkerReviewsController
 from core.controllers.ReviewController import ReviewController, ReviewDetailController
 from core.controllers.CategoryController import CategoryController, CategoryDetailController
-from core.controllers.AuthController import login, register
+from core.controllers.AuthController import (
+    login,
+    register,
+    send_otp,
+    verify_otp,
+    firebase_login,
+    register_with_firebase,
+    register_with_otp,
+)
 from core.controllers.AdminController import (
     AdminPendingWorkersController,
     AdminApproveWorkerController,
@@ -37,4 +45,9 @@ urlpatterns = [
     path("admin/workers/<int:worker_id>/reject", AdminRejectWorkerController.as_view(), name="admin_worker_reject"),
     path("auth/login", login, name="auth_login"),
     path("auth/register", register, name="auth_register"),
+    path("auth/send-otp", send_otp, name="auth_send_otp"),
+    path("auth/verify-otp", verify_otp, name="auth_verify_otp"),
+    path("auth/firebase/login", firebase_login, name="auth_firebase_login"),
+    path("auth/register-with-firebase", register_with_firebase, name="auth_register_with_firebase"),
+    path("auth/register-with-otp", register_with_otp, name="auth_register_with_otp"),
 ]

@@ -21,6 +21,11 @@ class EndpointPermissionMiddleware:
     PUBLIC_PATH_PREFIXES = (
         "api/auth/login",
         "api/auth/register",
+        "api/auth/send-otp",
+        "api/auth/verify-otp",
+        "api/auth/firebase/login",
+        "api/auth/register-with-firebase",
+        "api/auth/register-with-otp",
         "api/categories",
         "api/users",
         "api/workers",
@@ -32,10 +37,19 @@ class EndpointPermissionMiddleware:
 
     def _is_public_path(self, path_info):
         """Return True if path is under a public prefix (no token required)."""
-        path = path_info.lstrip("/").rstrip("/")
+        # Normalize: strip slashes and collapse multiple slashes
+        path = path_info.strip("/")
+        path = "/".join(p for p in path.split("/") if p)
+        if not path.startswith("api/"):
+            return False
         for prefix in self.PUBLIC_PATH_PREFIXES:
             if path == prefix or path.startswith(prefix + "/"):
                 return True
+        # Explicitly allow auth endpoints by segment (in case of path quirks)
+        if "auth/" in path and any(
+            x in path for x in ("send-otp", "verify-otp", "register-with-otp", "register-with-firebase", "firebase/login", "auth/login", "auth/register")
+        ):
+            return True
         return False
 
     def __call__(self, request):

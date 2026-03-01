@@ -12,11 +12,12 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "phone",
+            "firebase_uid",
             "role",
             "first_name",
             "last_name",
         ]
-        read_only_fields = ["id", "role"]
+        read_only_fields = ["id", "role", "firebase_uid"]
 
 
 class RegisterSerializer(serializers.ModelSerializer):

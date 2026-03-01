@@ -12,6 +12,7 @@ class User(AbstractUser):
     ]
 
     phone = models.CharField(max_length=20, blank=True)
+    firebase_uid = models.CharField(max_length=128, unique=True, null=True, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="customer")
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
